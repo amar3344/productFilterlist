@@ -65,11 +65,21 @@ const ratingsList = [
   },
 ]
 
+const apiStatusConstraints = {
+  initial: 'INITIAl',
+  success: 'SUCCESS',
+  failure: 'FAILURE',
+  inprogress: 'IN_PROGRESS',
+}
+
 class AllProductsSection extends Component {
   state = {
     productsList: [],
-    isLoading: false,
+    apiStatus: apiStatusConstraints.initial,
     activeOptionId: sortbyOptions[0].optionId,
+    activeCategoryId: '',
+    searchInput: '',
+    activeRatingId: '',
   }
 
   componentDidMount() {
@@ -78,14 +88,19 @@ class AllProductsSection extends Component {
 
   getProducts = async () => {
     this.setState({
-      isLoading: true,
+      apiStatus: apiStatusConstraints.inprogress,
     })
     const jwtToken = Cookies.get('jwt_token')
 
     // TODO: Update the code to get products with filters applied
+    const {
+      activeCategoryId,
+      activeOptionId,
+      activeRatingId,
+      searchInput,
+    } = this.state
 
-    const {activeOptionId} = this.state
-    const apiUrl = `https://apis.ccbp.in/products?sort_by=${activeOptionId}`
+    const apiUrl = `https://apis.ccbp.in/products?sort_by=${activeOptionId}&category=${activeCategoryId}&title_search=${searchInput}&rating=${activeRatingId}`
     const options = {
       headers: {
         Authorization: `Bearer ${jwtToken}`,
@@ -105,7 +120,11 @@ class AllProductsSection extends Component {
       }))
       this.setState({
         productsList: updatedData,
-        isLoading: false,
+        apiStatus: apiStatusConstraints.success,
+      })
+    } else {
+      this.setState({
+        apiStatus: apiStatusConstraints.failure,
       })
     }
   }
@@ -116,9 +135,10 @@ class AllProductsSection extends Component {
 
   renderProductsList = () => {
     const {productsList, activeOptionId} = this.state
+    const showProductList = productsList.length > 0
 
     // TODO: Add No Products View
-    return (
+    return showProductList ? (
       <div className="all-products-container">
         <ProductsHeader
           activeOptionId={activeOptionId}
@@ -131,6 +151,17 @@ class AllProductsSection extends Component {
           ))}
         </ul>
       </div>
+    ) : (
+      <div className="no-products-view">
+        <img
+          src="https://assets.ccbp.in/frontend/react-js/nxt-trendz/nxt-trendz-no-products-view.png"
+          alt="no products"
+          className="no-products-img"
+        />
+
+        <h1 className="no-products-heading">No products Found</h1>
+        <p>We could not find any products.Try other filters.</p>
+      </div>
     )
   }
 
@@ -140,17 +171,82 @@ class AllProductsSection extends Component {
     </div>
   )
 
-  // TODO: Add failure view
+  failureView = () => (
+    <div>
+      <img
+        src="https://assets.ccbp.in/frontend/react-js/nxt-trendz/nxt-trendz-products-error-view.png"
+        alt="products failure"
+        className="products-failure-img"
+      />
+      <h1 className="products-failure-heading">Oops! Something Went Wrong</h1>
+      <p>
+        We are having some trouble processing your request.Please try again.
+      </p>
+    </div>
+  )
+
+  renderAllProducts = () => {
+    const {apiStatus} = this.state
+
+    switch (apiStatus) {
+      case apiStatusConstraints.inprogress:
+        return this.renderLoader()
+      case apiStatusConstraints.success:
+        return this.renderProductsList()
+      case apiStatusConstraints.failure:
+        return this.failureView()
+      default:
+        return null
+    }
+  }
+
+  clearAllFilters = () => {
+    this.setState(
+      {
+        searchInput: '',
+        activeCategoryId: '',
+        activeRatingId: '',
+      },
+      this.getProducts,
+    )
+  }
+
+  changeRating = activeRatingId => {
+    this.setState({activeRatingId}, this.getProducts)
+  }
+
+  changeCategory = activeCategoryId => {
+    this.setState({activeCategoryId}, this.getProducts)
+  }
+
+  enterSearchInput = () => {
+    this.getProducts()
+  }
+
+  changeSearchInput = searchInput => {
+    this.setState({searchInput})
+  }
 
   render() {
-    const {isLoading, productsList} = this.state
+    const {searchInput, activeCategoryId, activeRatingId} = this.state
 
     return (
       <div className="all-products-section">
         {/* TODO: Update the below element */}
-        <FiltersGroup productsList={productsList} />
+        <FiltersGroup
+          searchInput={searchInput}
+          changeSearchInput={this.changeSearchInput}
+          enterSearchInput={this.enterSearchInput}
+          categoryOptions={categoryOptions}
+          activeCategoryId={activeCategoryId}
+          changeCategory={this.changeCategory}
+          ratingsList={ratingsList}
+          activeRatingId={activeRatingId}
+          changeRating={this.changeRating}
+          clearAllFilters={this.clearAllFilters}
+        />
 
-        {isLoading ? this.renderLoader() : this.renderProductsList()}
+        {this.renderAllProducts()}
       </div>
     )
   }

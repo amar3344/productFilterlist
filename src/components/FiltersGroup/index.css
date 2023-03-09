@@ -36,26 +36,27 @@
   background-size: cover;
 }
 
-.category-container {
+ul {
+  margin: 0px;
   padding: 0px;
-  list-style: none;
 }
 
-.category-container li {
-  padding: 5px 0px;
+.category-item {
   color: #475569;
   font-size: 14px;
   font-weight: 500;
   font-family: 'Roboto';
+  list-style: none;
+  cursor: pointer;
 }
 
-.category-container li h1 {
+h1 {
   font-size: 16px;
   color: #12022f;
   font-family: 'Roboto';
   font-weight: bold;
   padding: 5px 0px;
-  margin: 0px;
+  margin: 10px 0px 0px 0px;
 }
 
 .rating-container-list {
@@ -63,9 +64,10 @@
   align-items: center;
 }
 
-.rating-container-list img {
+.rating-img {
   width: 150px;
   padding: 0px;
+  cursor: pointer;
 }
 
 .rating-container-list span {

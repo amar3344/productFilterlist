@@ -1,60 +1,81 @@
-import {useState} from 'react'
 import {AiOutlineSearch} from 'react-icons/ai'
 
 import './index.css'
 
-const categoryOptions = [
-  {
-    name: 'Clothing',
-    categoryId: '1',
-  },
-  {
-    name: 'Electronics',
-    categoryId: '2',
-  },
-  {
-    name: 'Appliances',
-    categoryId: '3',
-  },
-  {
-    name: 'Grocery',
-    categoryId: '4',
-  },
-  {
-    name: 'Toys',
-    categoryId: '5',
-  },
-]
-
-const ratingsList = [
-  {
-    ratingId: '4',
-    imageUrl:
-      'https://assets.ccbp.in/frontend/react-js/rating-four-stars-img.png',
-  },
-  {
-    ratingId: '3',
-    imageUrl:
-      'https://assets.ccbp.in/frontend/react-js/rating-three-stars-img.png',
-  },
-  {
-    ratingId: '2',
-    imageUrl:
-      'https://assets.ccbp.in/frontend/react-js/rating-two-stars-img.png',
-  },
-  {
-    ratingId: '1',
-    imageUrl:
-      'https://assets.ccbp.in/frontend/react-js/rating-one-star-img.png',
-  },
-]
-
 const FiltersGroup = props => {
-  const {productsList} = props
-  const [searchInput, setSearchInput] = useState('')
-  const getProductsBySearchInput = e => {
-    setSearchInput(e.target.vale)
+  const {searchInput, clearAllFilters, changeSearchInput} = props
+
+  const getProductsBySearchInput = e => changeSearchInput(e.target.value)
+
+  const onEnterSearchInput = event => {
+    const {enterSearchInput} = props
+    if (event.key === 'Enter') {
+      enterSearchInput()
+    }
   }
+
+  const renderCategoryList = () => {
+    const {categoryOptions} = props
+    return categoryOptions.map(category => {
+      const {changeCategory, activeCategoryId} = props
+      const onClickCategoryItem = () => changeCategory(category.categoryId)
+      const isActive = category.categoryId === activeCategoryId
+      const categoryClassName = isActive
+        ? `category-name active-category-name`
+        : `category-name`
+
+      return (
+        <li
+          className="category-item"
+          key={category.categoryId}
+          onClick={onClickCategoryItem}
+        >
+          <p className={categoryClassName}>{category.name}</p>
+        </li>
+      )
+    })
+  }
+
+  const renderRatingFilter = () => {
+    const {ratingsList} = props
+
+    return ratingsList.map(rating => {
+      const {changeRating, activeRatingId} = props
+      const onClickRatingItem = () => changeRating(rating.ratingId)
+
+      const ratingClassName =
+        activeRatingId === rating.ratingId ? `and-up active-rating` : `and-up`
+
+      return (
+        <li
+          className="rating-container-list"
+          key={rating.ratingId}
+          onClick={onClickRatingItem}
+        >
+          <img
+            src={rating.imageUrl}
+            alt={`rating ${rating.ratingId}`}
+            className="rating-img"
+          />
+          <p className={ratingClassName}>& up</p>
+        </li>
+      )
+    })
+  }
+
+  const getRatingFilter = () => (
+    <>
+      <h1>Rating</h1>
+      <ul>{renderRatingFilter()}</ul>
+    </>
+  )
+
+  const getCategoryList = () => (
+    <>
+      <h1>Category</h1>
+      <ul>{renderCategoryList()}</ul>
+    </>
+  )
 
   return (
     <div className="filters-group-container">
@@ -65,27 +86,14 @@ const FiltersGroup = props => {
           placeholder="search"
           value={searchInput}
           onChange={getProductsBySearchInput}
+          onKeyDown={onEnterSearchInput}
         />
         <AiOutlineSearch className="search-logo" />
       </div>
-      <ul className="category-container">
-        <li>
-          <h1>Category</h1>
-        </li>
-        {categoryOptions.map(item => (
-          <li>{item.name}</li>
-        ))}
-        <li>
-          <h1>Rating</h1>
-        </li>
-        {ratingsList.map(item => (
-          <li className="rating-container-list">
-            <img src={item.imageUrl} alt={item.ratingId} />
-            <span>&up</span>
-          </li>
-        ))}
-      </ul>
-      <button type="button" className="clear-button">
+
+      {getCategoryList()}
+      {getRatingFilter()}
+      <button type="button" className="clear-button" onClick={clearAllFilters}>
         Clear Filters
       </button>
     </div>
@@ -93,3 +101,5 @@ const FiltersGroup = props => {
 }
 
 export default FiltersGroup
+
+//           changeSearchInput={this.changeSearchInput}
